@@ -135,10 +135,12 @@ export default function Home() {
 
   const handleExport = () => {
     const exportData = selectedRowsRef.current.length > 0 ? selectedRowsRef.current : data;
+    console.log('Export Data:', exportData); // Log the export data to check if it's correct
     const translatedColumns = columns.map(col => ({
       ...col,
       title: columnTranslations[col.dataIndex],
     }));
+    console.log('Translated Columns:', translatedColumns); // Log the translated columns to check if they're correct
     const worksheet = XLSX.utils.json_to_sheet(exportData, { header: translatedColumns.map(col => col.title) });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Models");
