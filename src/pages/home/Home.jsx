@@ -29,6 +29,11 @@ const columns = [
     key: 'age',
   },
   {
+    title: 'Дата рождения',
+    dataIndex: 'birth_date',
+    key: 'birth_date',
+  },
+  {
     title: 'Пол',
     dataIndex: 'sex',
     key: 'sex',
@@ -113,6 +118,8 @@ const columnTranslations = {
   inst_link: 'Инстраграм',
   video_link: 'Ссылка на видео',
   comment: 'Комментарий',
+  birth_date: 'Дата рождения',
+  id: "ID"
 };
 
 export default function Home() {
@@ -135,17 +142,22 @@ export default function Home() {
 
   const handleExport = () => {
     const exportData = selectedRowsRef.current.length > 0 ? selectedRowsRef.current : data;
-    console.log('Export Data:', exportData); // Log the export data to check if it's correct
-    const translatedColumns = columns.map(col => ({
-      ...col,
-      title: columnTranslations[col.dataIndex],
-    }));
-    console.log('Translated Columns:', translatedColumns); // Log the translated columns to check if they're correct
-    const worksheet = XLSX.utils.json_to_sheet(exportData, { header: translatedColumns.map(col => col.title) });
+  
+    // Map the data using translated column names
+    const translatedData = exportData.map(item => {
+      const translatedItem = {};
+      Object.keys(item).forEach(key => {
+        translatedItem[columnTranslations[key]] = item[key];
+      });
+      return translatedItem;
+    });
+  
+    const worksheet = XLSX.utils.json_to_sheet(translatedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Models");
     XLSX.writeFile(workbook, "models.xlsx");
   };
+  
 
   return (
     <div className="roboto-regular">
