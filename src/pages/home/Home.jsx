@@ -6,6 +6,7 @@ import { Space, Switch, Table } from 'antd';
 import { IoMdClose } from "react-icons/io";
 import axios from 'axios';
 import * as XLSX from 'xlsx';
+import { useRef } from 'react';
 
 const columns = [
   {
@@ -96,43 +97,49 @@ const columns = [
   },
 ];
 
-const rowSelection = {
-  onChange: (selectedRowKeys, selectedRows) => {
-    console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-  },
-  onSelect: (record, selected, selectedRows) => {
-    console.log(record, selected, selectedRows);
-  },
-  onSelectAll: (selected, selectedRows, changeRows) => {
-    console.log(selected, selectedRows, changeRows);
-  },
+const columnTranslations = {
+  name: 'Имя',
+  surname: 'Фамилия',
+  age: 'Возраст',
+  sex: 'Пол',
+  height: 'Рост',
+  weight: 'Вес',
+  hair_color: 'Цвет волос',
+  type: 'Типаж',
+  clothes_size: 'Размер одежды',
+  language: 'Язык',
+  city: 'Город',
+  filming_experience: 'Опыт работы',
+  inst_link: 'Инстраграм',
+  video_link: 'Ссылка на видео',
+  comment: 'Комментарий',
 };
 
 export default function Home() {
-
   const [data, setData] = useState([]);
-
-  
+  const selectedRowsRef = useRef([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        fetch('http://127.0.0.1:8000/api/actor-list/')
-        .then((resp) => resp.json())
-        .then(function(data){
-          setData(data);
-        })
+        const response = await fetch('http://127.0.0.1:8000/api/actor-list/');
+        const data = await response.json();
+        setData(data);
       } catch (error) {
         console.log(error);
       }
     };
 
     fetchData();
-  }, []); 
+  }, []);
 
   const handleExport = () => {
-    const exportData = data;
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const exportData = selectedRowsRef.current.length > 0 ? selectedRowsRef.current : data;
+    const translatedColumns = columns.map(col => ({
+      ...col,
+      title: columnTranslations[col.dataIndex],
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(exportData, { header: translatedColumns.map(col => col.title) });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Models");
     XLSX.writeFile(workbook, "models.xlsx");
@@ -146,20 +153,25 @@ export default function Home() {
           className="mt-5 bg-black text-white px-10 py-2 rounded-lg"
           onClick={() => location.href = '/add-actor'}
         >Добавить</button>
-        <button onClick={handleExport} className="mt-5 border border-black px-10 py-2 rounded-lg">Выгрузить Excel</button>
+        <button
+          className="mt-5 border border-black px-10 py-2 rounded-lg"
+          onClick={handleExport}
+        >Выгрузить Excel</button>
       </div>
       <Table
         columns={columns}
         rowSelection={{
-          ...rowSelection,
+          onChange: (selectedRowKeys, selectedRows) => {
+            selectedRowsRef.current = selectedRows;
+          },
         }}
         dataSource={data}
         className="mt-5"
         scroll={{
           x: 3000,
         }}
+        rowKey="id"
       />      
     </div>
   );
 }
-
