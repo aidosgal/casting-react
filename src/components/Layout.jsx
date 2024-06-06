@@ -18,7 +18,7 @@ export default function Layout() {
   }, [isAuth]);
 
   return (
-    <div className="roboto-regular px-60 py-10">
+    <div className="roboto-regular sm:px-60 py-10">
       <Outlet/>   
     </div>
   );

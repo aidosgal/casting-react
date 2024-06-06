@@ -98,7 +98,7 @@ const columns = [
     key: 'operation',
     fixed: 'right',
     width: 100,
-    render: () => <a>Изменить</a>,
+    render: (_, record) => <a href={`/actor/${record.id}`}>Перейти</a>,
   },
 ];
 
@@ -143,7 +143,6 @@ export default function Home() {
   const handleExport = () => {
     const exportData = selectedRowsRef.current.length > 0 ? selectedRowsRef.current : data;
   
-    // Map the data using translated column names
     const translatedData = exportData.map(item => {
       const translatedItem = {};
       Object.keys(item).forEach(key => {
@@ -181,6 +180,7 @@ export default function Home() {
         }}
         dataSource={data}
         className="mt-5"
+        pagination={{ pageSize: 6 }}
         scroll={{
           x: 3000,
         }}
