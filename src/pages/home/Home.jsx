@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
-import { MdOutlineMovie } from "react-icons/md";
-import { MdLockOutline } from "react-icons/md";
-import { MdOutlineLanguage } from "react-icons/md";
-import { Space, Switch, Table } from 'antd';
-import { IoMdClose } from "react-icons/io";
+import { useState, useEffect, useRef } from 'react';
+import { Table, Input, Button, Slider, Select } from 'antd';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
-import { useRef } from 'react';
+
+const { Search } = Input;
+const { Option } = Select;
 
 const columns = [
   {
@@ -21,7 +19,7 @@ const columns = [
     dataIndex: 'surname',
     key: 'surname',
     fixed: 'left',
-    width: 150, 
+    width: 150,
   },
   {
     title: 'Возраст',
@@ -124,25 +122,57 @@ const columnTranslations = {
 
 export default function Home() {
   const [data, setData] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({
+    age: [0, 100],
+    language: "",
+    height: [100, 250],
+    weight: [30, 150],
+    sex: ""
+  });
   const selectedRowsRef = useRef([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/actor-list/');
-        const data = await response.json();
-        setData(data);
+        const response = await axios.get('http://127.0.0.1:8000/api/actor-list/');
+        let fetchedData = response.data;
+
+        // Apply filters
+        fetchedData = fetchedData.filter(item =>
+          item.age >= filters.age[0] && item.age <= filters.age[1] &&
+          item.height >= filters.height[0] && item.height <= filters.height[1] &&
+          item.weight >= filters.weight[0] && item.weight <= filters.weight[1]
+        );
+
+        if (filters.language) {
+          fetchedData = fetchedData.filter(item => item.language.toLowerCase().includes(filters.language.toLowerCase()));
+        }
+        if (filters.sex) {
+          fetchedData = fetchedData.filter(item => item.sex.toLowerCase().includes(filters.sex.toLowerCase()));
+        }
+
+        // Apply search
+        if (search) {
+          fetchedData = fetchedData.filter(item =>
+            Object.values(item).some(val =>
+              String(val).toLowerCase().includes(search.toLowerCase())
+            )
+          );
+        }
+
+        setData(fetchedData);
       } catch (error) {
         console.log(error);
       }
     };
 
     fetchData();
-  }, []);
+  }, [search, filters]);
 
   const handleExport = () => {
     const exportData = selectedRowsRef.current.length > 0 ? selectedRowsRef.current : data;
-  
+
     const translatedData = exportData.map(item => {
       const translatedItem = {};
       Object.keys(item).forEach(key => {
@@ -150,48 +180,114 @@ export default function Home() {
       });
       return translatedItem;
     });
-  
+
     const worksheet = XLSX.utils.json_to_sheet(translatedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Models");
     XLSX.writeFile(workbook, "models.xlsx");
   };
-  
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prevFilters => ({ ...prevFilters, [key]: value }));
+  };
 
   return (
     <div className="roboto-regular">
-      <div className="text-2xl">Таблица учета моделей</div> 
+      <div className="text-2xl">Таблица учета моделей</div>
       <div className="flex gap-5 text-sm">
-        <button 
-          className="mt-5 bg-black text-white px-10 py-2 rounded-lg"
-          onClick={() => location.href = '/add-actor'}
-        >Добавить</button>
-        <button
-          className="mt-5 border border-black px-10 py-2 rounded-lg"
-          onClick={handleExport}
-        >Выгрузить Excel</button>
-      </div>
-      <input placeholder="Поиск..." className="mt-4 border border-gray-300 rounded-lg px-5 w-full py-2"/>
-      <div className="flex">
-        <Table
-          columns={columns}
-          rowSelection={{
-            onChange: (selectedRowKeys, selectedRows) => {
-              selectedRowsRef.current = selectedRows;
-            },
-          }}
-          dataSource={data}
+        <Button 
           className="mt-5"
-          pagination={{ pageSize: 6 }}
-          scroll={{
-            x: 3000,
-          }}
-          rowKey="id"
-        />      
-        <div className="w-full">
-          <div>Фильтры</div>
+          type="primary"
+          onClick={() => location.href = '/add-actor'}
+        >Добавить</Button>
+        <Button
+          className="mt-5"
+          onClick={handleExport}
+        >Выгрузить Excel</Button>
+      </div>
+      <Search
+        placeholder="Поиск..."
+        className="mt-4"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+      <div className="p-5 mt-5 border border-gray-300 rounded-lg">
+        <div>Фильтры</div>
+        <div className="flex gap-4 mt-4">
+          <div className="flex-1">
+            <div>Возраст</div>
+            <Slider
+              range
+              min={0}
+              max={100}
+              value={filters.age}
+              onChange={(value) => handleFilterChange("age", value)}
+            />
+          </div>
+          <div className="flex-1">
+            <div>Рост</div>
+            <Slider
+              range
+              min={100}
+              max={250}
+              value={filters.height}
+              onChange={(value) => handleFilterChange("height", value)}
+            />
+          </div>
+          <div className="flex-1">
+            <div>Вес</div>
+            <Slider
+              range
+              min={30}
+              max={150}
+              value={filters.weight}
+              onChange={(value) => handleFilterChange("weight", value)}
+            />
+          </div>
+          <div className="flex-1">
+            <div>Пол</div>
+            <Select
+              className="w-full"
+              placeholder="Пол"
+              value={filters.sex}
+              onChange={(value) => handleFilterChange("sex", value)}
+            >
+              <Option value="">Все</Option>
+              <Option value="male">Мужской</Option>
+              <Option value="female">Женский</Option>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <div>Язык</div>
+            <Select
+              className="w-full"
+              placeholder="Язык"
+              value={filters.language}
+              onChange={(value) => handleFilterChange("language", value)}
+            >
+              <Option value="">Все</Option>
+              <Option value="russian">Русский</Option>
+              <Option value="english">Английский</Option>
+              <Option value="other">Другой</Option>
+            </Select>
+          </div>
         </div>
       </div>
+      <Table
+        columns={columns}
+        rowSelection={{
+          onChange: (selectedRowKeys, selectedRows) => {
+            selectedRowsRef.current = selectedRows;
+          },
+        }}
+        dataSource={data}
+        className="mt-5"
+        pagination={{ pageSize: 6 }}
+        scroll={{
+          x: 3000,
+        }}
+        rowKey="id"
+      />      
     </div>
   );
 }
