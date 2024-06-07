@@ -171,21 +171,27 @@ export default function Home() {
           onClick={handleExport}
         >Выгрузить Excel</button>
       </div>
-      <Table
-        columns={columns}
-        rowSelection={{
-          onChange: (selectedRowKeys, selectedRows) => {
-            selectedRowsRef.current = selectedRows;
-          },
-        }}
-        dataSource={data}
-        className="mt-5"
-        pagination={{ pageSize: 6 }}
-        scroll={{
-          x: 3000,
-        }}
-        rowKey="id"
-      />      
+      <input placeholder="Поиск..." className="mt-4 border border-gray-300 rounded-lg px-5 w-full py-2"/>
+      <div className="flex">
+        <Table
+          columns={columns}
+          rowSelection={{
+            onChange: (selectedRowKeys, selectedRows) => {
+              selectedRowsRef.current = selectedRows;
+            },
+          }}
+          dataSource={data}
+          className="mt-5"
+          pagination={{ pageSize: 6 }}
+          scroll={{
+            x: 3000,
+          }}
+          rowKey="id"
+        />      
+        <div className="w-full">
+          <div>Фильтры</div>
+        </div>
+      </div>
     </div>
   );
 }
