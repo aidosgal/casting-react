@@ -135,7 +135,8 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/actor-list/');
+        const response = await axios.get('http://92.46.41.236:8000/api/actor-list/');
+        console.log(response)
         let fetchedData = response.data;
 
         // Apply filters

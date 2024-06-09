@@ -10,7 +10,7 @@ export default function Actor() {
     useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/actor/${id}`);
+        const response = await fetch(`http://92.46.41.236:8000/api/actor/${id}`);
         const data = await response.json();
         setActor(data);
       } catch (error) {

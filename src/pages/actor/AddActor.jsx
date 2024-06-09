@@ -29,9 +29,9 @@ export default function AddActor() {
       console.log(file)
       formData.append(`uploaded_images[${index}]`, file.originFileObj);
     });
-
+    console.log(formData);
     try {
-      const response = await axios.post('http://localhost:8000/api/actor-create', formData, {
+      const response = await axios.post('http://92.46.41.236:8000/api/actor-create/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -39,11 +39,15 @@ export default function AddActor() {
       message.success('Actor profile added successfully!');
       form.resetFields();
       setFileList([]);
+      location.href = "/"
     } catch (error) {
       console.log(error.response); 
     }
   };
- 
+  
+  const onChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
+  };
 
   const dateValidator = (rule, value) => {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -75,8 +79,8 @@ export default function AddActor() {
           </Form.Item>
           <Form.Item label="Пол" name="sex" rules={[{ required: true, message: 'Please select the gender' }]}>
             <Select placeholder="Выберите пол">
-              <Option value="male">Мужской</Option>
-              <Option value="female">Женский</Option>
+              <Option value="м">Мужской</Option>
+              <Option value="ж">Женский</Option>
             </Select>
           </Form.Item>
           <Form.Item 
@@ -92,11 +96,8 @@ export default function AddActor() {
           <Form.Item label="Фото" name="uploaded_image">
             <Upload
               multiple
-              beforeUpload={handleUpload}
               fileList={fileList}
-              onRemove={(file) => {
-                setFileList(fileList.filter((item) => item.uid !== file.uid));
-              }}
+              onChange={onChange} 
             >
               <Button icon={<UploadOutlined />}>Загрузить фото</Button>
             </Upload>
@@ -107,9 +108,7 @@ export default function AddActor() {
           <Form.Item label="Вес" name="weight">
             <Input placeholder="Введите вес" />
           </Form.Item>
-          <Form.Item label="Цвет волос" name="hair_color">
-            <Input placeholder="Введите цвет волос" />
-          </Form.Item>
+          <Form.Item label="Цвет волос" name="hair_color"> <Input placeholder="Введите цвет волос" /> </Form.Item>
           <Form.Item label="Типаж" name="type">
             <Input placeholder="Введите типаж" />
           </Form.Item>
