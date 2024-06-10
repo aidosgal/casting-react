@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Table, Input, Button, Slider, Select } from 'antd';
+import { Table, Input, Button, Slider, Select, Checkbox } from 'antd';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 
@@ -123,6 +123,7 @@ const columnTranslations = {
 export default function Home() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     age: [0, 100],
     language: "",
@@ -136,8 +137,8 @@ export default function Home() {
     const fetchData = async () => {
       try {
         const response = await axios.get('http://92.46.41.236:8000/api/actor-list/');
-        console.log(response)
         let fetchedData = response.data;
+        setLoading(false)
 
         // Apply filters
         fetchedData = fetchedData.filter(item =>
@@ -192,6 +193,17 @@ export default function Home() {
     setFilters(prevFilters => ({ ...prevFilters, [key]: value }));
   };
 
+  const handleActorSelect = (actorId, checked) => {
+    if (checked) {
+      selectedRowsRef.current.push(actorId);
+    } else {
+      const index = selectedRowsRef.current.indexOf(actorId);
+      if (index !== -1) {
+        selectedRowsRef.current.splice(index, 1);
+      }
+    }
+  };
+
   return (
     <div className="roboto-regular">
       <div className="text-2xl">Таблица учета моделей</div>
@@ -214,7 +226,7 @@ export default function Home() {
       />
       <div className="p-5 mt-5 border border-gray-300 rounded-lg">
         <div>Фильтры</div>
-        <div className="flex gap-4 mt-4">
+        <div className="sm:flex gap-4 mt-4">
           <div className="flex-1">
             <div>Возраст</div>
             <Slider
@@ -254,8 +266,8 @@ export default function Home() {
               onChange={(value) => handleFilterChange("sex", value)}
             >
               <Option value="">Все</Option>
-              <Option value="male">Мужской</Option>
-              <Option value="female">Женский</Option>
+              <Option value="м">Мужской</Option>
+              <Option value="ж">Женский</Option>
             </Select>
           </div>
           <div className="flex-1">
@@ -267,9 +279,9 @@ export default function Home() {
               onChange={(value) => handleFilterChange("language", value)}
             >
               <Option value="">Все</Option>
-              <Option value="russian">Русский</Option>
-              <Option value="english">Английский</Option>
-              <Option value="other">Другой</Option>
+              <Option value="Русский">Русский</Option>
+              <Option value="Английский">Английский</Option>
+              <Option value="Казахский">Казахский</Option>
             </Select>
           </div>
         </div>
@@ -282,13 +294,38 @@ export default function Home() {
           },
         }}
         dataSource={data}
-        className="mt-5"
+        className="mt-5 hidden sm:block"
         pagination={{ pageSize: 6 }}
         scroll={{
           x: 3000,
         }}
         rowKey="id"
       />      
+      <div className="sm:hidden">
+          {loading === true ? (
+              <div>Загрузка...</div>
+          ) : (
+              <>
+                {data.map(item => (
+                     <div className="p-3 border mt-5 rounded-lg border-gray-300" >
+                        <div className="flex gap-5">
+                            <Checkbox
+                                onChange={(e) => handleActorSelect(item.id, e.target.checked)}
+                              />
+                            <img className="w-[80px] h-[80px] rounded-full object-cover" src={`http://92.46.41.236:8000/${item.images && (item.images[0].image)}`}/>
+                            <div>
+                                <div>{item.name} {item.surname}</div>
+                                <div className="text-gray-500 text-sm">Возраст: <span className="text-black">{item.age}</span></div>
+                                <div className="text-gray-500 text-sm">Рост: <span className="text-black">{item.height}</span></div>
+                                <div className="text-gray-500 text-sm">Вес: <span className="text-black">{item.weight}</span></div>
+                            </div>
+                        </div>
+                        <button className="w-full bg-black rounded-lg py-2 text-center text-white mt-5" onClick={() => location.href=`/actor/${item.id}`}>Перейти</button>
+                     </div>
+                 ))}
+              </>
+          )}
+      </div>
     </div>
   );
 }

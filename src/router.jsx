@@ -4,6 +4,7 @@ import Actor from './pages/actor/Actor';
 import Layout from './components/Layout';
 import AddActor from './pages/actor/AddActor';
 import Login from './pages/Login';
+import EditActor from './pages/actor/EditActor';
 
 const router = createBrowserRouter([
   {
@@ -24,7 +25,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/edit-actor/:id',
-        element: <AddActor/>,
+        element: <EditActor/>,
       },
       {
         path: '/login',

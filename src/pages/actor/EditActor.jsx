@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input, Select, Upload, Button, Form, Typography, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
-export default function AddActor() {
+export default function EditActor() {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
+  const { id } = useParams();
+  const [actor, setActor] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleUpload = ({ file, fileList }) => {
     setFileList(fileList);
     return false;
   };
+
 
   const handleSubmit = async (values) => {
     console.log('Form Values:', values); // Log the form values to the console
@@ -31,7 +36,7 @@ export default function AddActor() {
     });
     console.log(formData);
     try {
-      const response = await axios.post('http://92.46.41.236:8000/api/actor-create/', formData, {
+      const response = await axios.post(`http://92.46.41.236:8000/api/actor-update/${id}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -44,6 +49,21 @@ export default function AddActor() {
       console.log(error.response); 
     }
   };
+
+  useEffect(() => {
+      const fetchData = async () => {
+          try {
+              const response = await axios.get(`http://92.46.41.236:8000/api/actor/${id}`);
+              let fetchedData = response.data;
+              setActor(fetchedData);
+              setLoading(false);
+          } catch (error) {
+              console.log(error)
+          }
+      }
+      fetchData();
+  }, []);
+
   
   const onChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
@@ -54,19 +74,39 @@ export default function AddActor() {
     if (!value || dateRegex.test(value)) {
       return Promise.resolve();
     }
-    return Promise.reject('Date must be in the format YYYY-MM-DD');
+    return Promise.reject('Дата рождения должна быть в формате YYYY-MM-DD');
   };
 
   return (
+    <>
+    {loading === false && (
     <div className="flex">
       <div className="sm:w-[1200px] w-full sm:mx-auto">
         <a href="/">Назад</a>
-        <div className="roboto-light text-2xl">Добавить профиль</div>
+        <div className="roboto-light text-2xl">Изменить {actor.name}</div>
         <Form
           form={form}
           layout="vertical"
           className="sm:grid sm:grid-cols-2 sm:gap-x-5 mt-5"
           onFinish={handleSubmit}
+          initialValues={{
+            name: actor.name || '',
+            surname: actor.surname || '',
+            age: actor.age || '',
+            sex: actor.sex || '',
+            birth_date: actor.birth_date || '',
+            height: actor.height || '',
+            weight: actor.weight || '',
+            hair_color: actor.hair_color || '',
+            type: actor.type || '',
+            clothes_size: actor.clothes_size || '',
+            language: actor.language || '',
+            city: actor.city || '',
+            filming_experience: actor.filming_experience || '',
+            inst_link: actor.inst_link || '',
+            video_link: actor.video_link || '',
+            comment: actor.comment || ''
+          }}
         >
           <Form.Item label="Имя" name="name" rules={[{ required: true, message: 'Please enter the name' }]}>
             <Input placeholder="Введите имя" />
@@ -92,16 +132,7 @@ export default function AddActor() {
             ]}
           >
             <Input placeholder="Введите дату рождения в формате YYYY-MM-DD" />
-          </Form.Item>
-          <Form.Item label="Фото" name="uploaded_image">
-            <Upload
-              multiple
-              fileList={fileList}
-              onChange={onChange} 
-            >
-              <Button icon={<UploadOutlined />}>Загрузить фото</Button>
-            </Upload>
-          </Form.Item>
+          </Form.Item> 
           <Form.Item label="Рост" name="height">
             <Input placeholder="Введите рост" />
           </Form.Item>
@@ -135,11 +166,13 @@ export default function AddActor() {
           </Form.Item>
           <Form.Item>
             <Button className="w-full sm:w-96 bg-black" type="primary" htmlType="submit">
-              Добавить
+              Сохранить
             </Button>
           </Form.Item>
         </Form>
       </div>
     </div>
+    )}
+    </>
   );
 }
