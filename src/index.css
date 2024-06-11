@@ -1,6 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* styles.css */
+
+/* Customizing the arrow buttons */
+.slick-prev,
+.slick-next {
+  color: white; /* Change the color of the arrow buttons */
+  font-size: 24px; /* Adjust the font size of the arrows */
+}
+
+/* Customizing the dot indicators */
+.slick-dots li button {
+  width: 10px; /* Adjust the width of the dots */
+  height: 10px; /* Adjust the height of the dots */
+  background-color: white; /* Change the background color of the dots */
+  border: none; /* Remove the border around the dots */
+}
+
+.slick-dots li.slick-active button {
+  background-color: black; /* Change the background color of the active dot */
+}
+
 .roboto-thin {
   font-family: "Roboto", sans-serif;
   font-weight: 100;

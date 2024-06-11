@@ -43,6 +43,7 @@ export default function Actor() {
 
   return (
     <div>
+        <div className="sm:hidden block">
         <a href="/">Назад</a> 
         <div className="sm:hidden">
         {loading ? (
@@ -93,6 +94,55 @@ export default function Actor() {
             <p className="text-gray-500">Ссылка на видео: <span className="text-black"><a href={actor.video_link}>{actor.video_link}</a></span></p>
             <p className="text-gray-500">Комментарий: <span className="text-black">{actor.comment}</span></p>
           </div>
+        </div>
+        <div className="hidden sm:block">
+            <a href="/">Назад</a> 
+            <div className="w-full grid grid-cols-2 gap-5">
+                <div>
+                {loading ? (
+                    <div>Загрузка</div>
+                ) : (
+                <Carousel className="py-5">
+                {aimages.map(item => (
+                    <div>
+                        <img className="w-full h-[500px] object-cover" src={`http://92.46.41.236:8000/${item.image}`} />
+                        <a className="w-full mt-5 block text-center py-2 border border-black rounded-lg" href={`http://92.46.41.236:8000/${item.image}`} download>Сохранить</a>
+                    </div>
+                ))}
+                </Carousel>
+                )}
+                </div>
+                <div>
+                    {loading ? (
+                        <div>Загрузка...</div>
+                    ) : (
+                        <div>
+                        <p className="text-2xl mt-5">{actor.name} {actor.surname}</p>
+                        <div className="flex gap-5 mt-5">
+                            <button className="w-full bg-black text-white rounded-lg py-2" onClick={() => location.href=`/edit-actor/${id}`}>Изменить</button>
+                            <button className="w-full border border-black text-black rounded-lg py-2" onClick={handleDelete}>Удалить</button>
+                        </div>
+                        <div className="sm:grid sm:grid-cols-2 mt-5 sm:gap-5">
+            <p className="text-gray-500">Дата рождения: <span className="text-black">{actor.birth_date}</span></p>
+            <p className="text-gray-500">Возраст: <span className="text-black">{actor.age}</span></p>
+            <p className="text-gray-500">Пол: <span className="text-black">{actor.sex}</span></p>
+            <p className="text-gray-500">Рост: <span className="text-black">{actor.height}</span></p>
+            <p className="text-gray-500">Вес: <span className="text-black">{actor.weight}</span></p>
+            <p className="text-gray-500">Тип: <span className="text-black">{actor.type}</span></p>
+            <p className="text-gray-500">Цвет волос: <span className="text-black">{actor.hair_color}</span></p>
+            <p className="text-gray-500">Размер одежды: <span className="text-black">{actor.clothes_size}</span></p>
+            <p className="text-gray-500">Язык: <span className="text-black">{actor.language}</span></p>
+            <p className="text-gray-500">Город: <span className="text-black">{actor.city}</span></p>
+            <p className="text-gray-500">Опыт съемок: <span className="text-black">{actor.filming_experience}</span></p>
+            <p className="text-gray-500">Ссылка на Instagram: <span className="text-black"><a href={actor.inst_link}>{actor.inst_link}</a></span></p>
+            <p className="text-gray-500">Ссылка на видео: <span className="text-black"><a href={actor.video_link}>{actor.video_link}</a></span></p>
+            <p className="text-gray-500">Комментарий: <span className="text-black">{actor.comment}</span></p>
+          </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     </div>
   );
 }

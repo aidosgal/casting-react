@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Table, Input, Button, Slider, Select, Checkbox } from 'antd';
+import { Table, Input, Button, Slider, Select, Checkbox, Pagination } from 'antd';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 
@@ -12,7 +12,8 @@ const columns = [
     dataIndex: 'name',
     key: 'name',
     fixed: 'left',
-    width: 100,
+    width: 150,
+    render: (_, record) => <div className="flex gap-5 items-center"><img className="w-[50px] h-[50px] object-cover rounded-full" src={`http://92.46.41.236:8000${record.images && record.images[0] && record.images[0].image ? (record.images[0].image) : ('/default')}`} />{record.name}</div>
   },
   {
     title: 'Фамилия',
@@ -123,7 +124,6 @@ const columnTranslations = {
 export default function Home() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     age: [0, 100],
     language: "",
@@ -131,54 +131,50 @@ export default function Home() {
     weight: [30, 150],
     sex: ""
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6); // Number of items per page
   const selectedRowsRef = useRef([]);
+  const [initialData, setInitialData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchActors async () => {
-        try {
-            const response = await axios.get('http://92.46.41.236:8000/api/actor-list/');
-            setData(response.data)
-        } catch (error) {
-            console.log(error)
-        }
-    }, [])
-    fetchActors();
-
-    const fetchData = async () => {
+    const fetchActor = async () => {
       try {
-        let fetchedData = data;
-
-        // Apply filters
-        fetchedData = fetchedData.filter(item =>
-          item.age >= filters.age[0] && item.age <= filters.age[1] &&
-          item.height >= filters.height[0] && item.height <= filters.height[1] &&
-          item.weight >= filters.weight[0] && item.weight <= filters.weight[1]
-        );
-
-        if (filters.language) {
-          fetchedData = fetchedData.filter(item => item.language.toLowerCase().includes(filters.language.toLowerCase()));
-        }
-        if (filters.sex) {
-          fetchedData = fetchedData.filter(item => item.sex.toLowerCase().includes(filters.sex.toLowerCase()));
-        }
-
-        // Apply search
-        if (search) {
-          fetchedData = fetchedData.filter(item =>
-            Object.values(item).some(val =>
-              String(val).toLowerCase().includes(search.toLowerCase())
-            )
-          );
-        }
-
-        setData(fetchedData);
+        const response = await axios.get('http://92.46.41.236:8000/api/actor-list/');
+        setInitialData(response.data);
+        setData(response.data);
+        setLoading(false);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
-    };
+    }
+    fetchActor();
+  }, []);
 
-    fetchData();
-  }, [search, filters]);
+  useEffect(() => {
+    let filteredData = initialData.filter(item =>
+      item.age >= filters.age[0] && item.age <= filters.age[1] &&
+      item.height >= filters.height[0] && item.height <= filters.height[1] &&
+      item.weight >= filters.weight[0] && item.weight <= filters.weight[1]
+    );
+
+    if (filters.language) {
+      filteredData = filteredData.filter(item => item.language.toLowerCase().includes(filters.language.toLowerCase()));
+    }
+    if (filters.sex) {
+      filteredData = filteredData.filter(item => item.sex.toLowerCase().includes(filters.sex.toLowerCase()));
+    }
+
+    if (search) {
+      filteredData = filteredData.filter(item =>
+        Object.values(item).some(val =>
+          String(val).toLowerCase().includes(search.toLowerCase())
+        )
+      );
+    }
+
+    setData(filteredData);
+  }, [search, filters, initialData]);
 
   const handleExport = () => {
     const exportData = selectedRowsRef.current.length > 0 ? selectedRowsRef.current : data;
@@ -211,6 +207,13 @@ export default function Home() {
       }
     }
   };
+
+  const handlePageChange = (page, pageSize) => {
+    setCurrentPage(page);
+    setPageSize(pageSize);
+  };
+
+  const currentData = data.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="roboto-regular">
@@ -294,6 +297,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {loading ? (
+          <div>Загрузка</div>
+      ) : (
       <Table
         columns={columns}
         rowSelection={{
@@ -303,37 +309,43 @@ export default function Home() {
         }}
         dataSource={data}
         className="mt-5 hidden sm:block"
-        pagination={{ pageSize: 6 }}
+        pagination={{ pageSize, onChange: handlePageChange }}
         scroll={{
           x: 3000,
         }}
         rowKey="id"
       />      
+        )}
+      {loading ? (
+          <div>Загрузка</div>
+      ) : (
       <div className="sm:hidden">
-          {loading === true ? (
-              <div>Загрузка...</div>
-          ) : (
-              <>
-                {data.map(item => (
-                     <div className="p-3 border mt-5 rounded-lg border-gray-300" >
-                        <div className="flex gap-5">
-                            <Checkbox
-                                onChange={(e) => handleActorSelect(item.id, e.target.checked)}
-                              />
-                            <img className="w-[80px] h-[80px] rounded-full object-cover" src={`http://92.46.41.236:8000/${item.images && (item.images[0].image)}`}/>
-                            <div>
-                                <div>{item.name} {item.surname}</div>
-                                <div className="text-gray-500 text-sm">Возраст: <span className="text-black">{item.age}</span></div>
-                                <div className="text-gray-500 text-sm">Рост: <span className="text-black">{item.height}</span></div>
-                                <div className="text-gray-500 text-sm">Вес: <span className="text-black">{item.weight}</span></div>
-                            </div>
-                        </div>
-                        <button className="w-full bg-black rounded-lg py-2 text-center text-white mt-5" onClick={() => location.href=`/actor/${item.id}`}>Перейти</button>
-                     </div>
-                 ))}
-              </>
-          )}
+        {currentData.map(item => (
+          <div className="p-3 border mt-5 rounded-lg border-gray-300" key={item.id}>
+            <div className="flex gap-5">
+              <Checkbox
+                onChange={(e) => handleActorSelect(item.id, e.target.checked)}
+              />
+              <img className="w-[80px] h-[80px] rounded-full object-cover" src={`http://92.46.41.236:8000/${item.images && item.images[0]?.image}`} alt="Actor"/>
+              <div>
+                <div>{item.name} {item.surname}</div>
+                <div className="text-gray-500 text-sm">Возраст: <span className="text-black">{item.age}</span></div>
+                <div className="text-gray-500 text-sm">Рост: <span className="text-black">{item.height}</span></div>
+                <div className="text-gray-500 text-sm">Вес: <span className="text-black">{item.weight}</span></div>
+              </div>
+            </div>
+            <button className="w-full bg-black rounded-lg py-2 text-center text-white mt-5" onClick={() => location.href = `/actor/${item.id}`}>Перейти</button>
+          </div>
+        ))}
+        <Pagination
+          className="mt-5 text-center"
+          current={currentPage}
+          pageSize={pageSize}
+          total={data.length}
+          onChange={handlePageChange}
+        />
       </div>
+        )} 
     </div>
   );
 }
