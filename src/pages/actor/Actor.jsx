@@ -27,11 +27,13 @@ export default function Actor() {
     fetchData();
   }, []);
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         try{
-            const response = axios.delete(`http://92.46.41.236:8000/api/actor-delete/${id}`);
+            const response = await axios.delete(`http://92.46.41.236:8000/api/actor-delete/${id}`);
             console.log(response)
-            location.href="/"
+            if(response.status === 200){
+                location.href="/"
+            }
         } catch (error) {
             console.log(error)
         }
@@ -50,7 +52,7 @@ export default function Actor() {
                 {aimages.map(item => (
                     <div>
                         <img className="w-full h-[500px] object-cover" src={`http://92.46.41.236:8000/${item.image}`} />
-                        <a className="w-full mt-5 block text-center py-2 border border-black rounded-lg" href={`http://92.46.41.236:8000/${item.image}`}>Сохранить</a>
+                        <a className="w-full mt-5 block text-center py-2 border border-black rounded-lg" href={`http://92.46.41.236:8000/${item.image}`} download>Сохранить</a>
                     </div>
                 ))}
         </Carousel>

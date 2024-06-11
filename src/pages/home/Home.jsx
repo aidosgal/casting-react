@@ -134,11 +134,19 @@ export default function Home() {
   const selectedRowsRef = useRef([]);
 
   useEffect(() => {
+    const fetchActors async () => {
+        try {
+            const response = await axios.get('http://92.46.41.236:8000/api/actor-list/');
+            setData(response.data)
+        } catch (error) {
+            console.log(error)
+        }
+    }, [])
+    fetchActors();
+
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://92.46.41.236:8000/api/actor-list/');
-        let fetchedData = response.data;
-        setLoading(false)
+        let fetchedData = data;
 
         // Apply filters
         fetchedData = fetchedData.filter(item =>
